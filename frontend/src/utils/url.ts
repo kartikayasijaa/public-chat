@@ -1,4 +1,4 @@
-export const BASE_URL = import.meta.env.BASE_URL || 'http://localhost:3002';
+export const BASE_URL = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3002";
 
 export const CLOUD_NAME = import.meta.env.VITE_APP_CLOUDINARY_CLOUD_NAME;
 export const UPLOAD_PRESET = import.meta.env.VITE_APP_CLOUDINARY_UPLOAD_PRESET;
