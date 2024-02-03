@@ -104,7 +104,7 @@ const Chat = () => {
           borderColor={"gray.600"}
           p={4}
           borderRadius="md"
-          height="85%"
+          height="80%"
           overflowY="auto"
         >
           <Flex direction={"column"}>

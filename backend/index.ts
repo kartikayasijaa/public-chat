@@ -47,4 +47,7 @@ io.on("connection", (socket) => {
     console.log({file})
     socket.broadcast.to("group").emit("file", file);
   })
+  socket.on("disconnect", () => {
+    socket.leave("group")
+  });
 });
