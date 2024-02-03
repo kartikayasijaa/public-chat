@@ -10,14 +10,22 @@ const app: Application = Express();
 app.use(Express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "https://public-chat-plum.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:3000",
+    ],
   })
 );
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: [
+      "https://public-chat-plum.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:3000",
+    ],
   },
 });
 
@@ -40,14 +48,14 @@ io.on("connection", (socket) => {
     socket.join("group");
   });
   socket.on("message", (message) => {
-    console.log(message)
+    console.log(message);
     socket.broadcast.to("group").emit("message", message);
   });
   socket.on("file", (file) => {
-    console.log({file})
+    console.log({ file });
     socket.broadcast.to("group").emit("file", file);
-  })
+  });
   socket.on("disconnect", () => {
-    socket.leave("group")
+    socket.leave("group");
   });
 });
