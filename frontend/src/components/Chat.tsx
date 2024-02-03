@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Input, IconButton, Stack, Flex } from "@chakra-ui/react";
+import { Box, Input, IconButton, Stack, Flex, useToast } from "@chakra-ui/react";
 import { FaPaperPlane } from "react-icons/fa";
-import { MessageType, extType } from "../utils/types";
+import { MessageType } from "../utils/types";
 import io from "socket.io-client";
 import { BASE_URL } from "../utils/url";
 import "../App.css";
@@ -19,12 +19,25 @@ const Chat = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setLoading(true);
       if (e.target.files) {
         //push and
+        const file = e.target.files[0]
+        if(!file.type.includes('audio') && !file.type.includes('video')){
+          toast({
+            position: "top",
+            title: "Invalid file type",
+            description: "Only audio and video files are allowed",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
         const url = await getUrl(e.target.files[0], "video");
         setUrl(url);
         setFile(e.target.files[0]);
@@ -46,7 +59,7 @@ const Chat = () => {
     };
     if (url !== "" && file !== null) {
       message.url = url;
-      message.ext = file.type as extType;
+      message.ext = file.type;
     }
     appendMessage(message);
     socket.emit("message", message);
@@ -84,11 +97,32 @@ const Chat = () => {
   }, []);
 
   useEffect(() => {
-    if(scrollRef.current) {
+    if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      scrollRef.current.scrollIntoView({ behavior: "smooth"});
-    } 
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
+
+  useEffect(()=>{
+    if(loading) {
+      toast({
+        position: "top",
+        title: "Uploading file",
+        status: "info",
+        isClosable: true,
+      });
+    }
+    if(loading === false && url !== ""){
+      toast({
+        position: "top",
+        title: "File uploaded",
+        description: "You can now send the file.",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
+  }, [loading])
 
   return (
     <>
@@ -118,22 +152,36 @@ const Chat = () => {
                 paddingY={1}
                 paddingX={4}
                 width={"fit-content"}
-                maxW={"40%"}
+                maxW={"50%"}
                 borderRadius="xl"
               >
                 {message.url !== undefined ? (
                   <>
-                    <audio
-                      controls
-                      style={{
-                        maxWidth: "50%",
-                        ...(message.type === "outgoing" && {
-                          marginLeft: "auto",
-                        }),
-                      }}
-                    >
-                      <source src={message.url} type="audio/mp3" />
-                    </audio>
+                    {message.ext?.includes('video') ? (
+                      <video
+                        controls
+                        style={{
+                          maxWidth: "100%",
+                          ...(message.type === "outgoing" && {
+                            marginLeft: "auto",
+                          }),
+                        }}
+                      >
+                        <source src={message.url} type="video/mp4" />
+                      </video>
+                    ) : (
+                      <audio
+                        controls
+                        style={{
+                          maxWidth: "100%",
+                          ...(message.type === "outgoing" && {
+                            marginLeft: "auto",
+                          }),
+                        }}
+                      >
+                        <source src={message.url} type="audio/mp3" />
+                      </audio>
+                    )}
                   </>
                 ) : (
                   message.text
